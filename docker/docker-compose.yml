@@ -1,0 +1,30 @@
+version: '3.4'
+
+services:
+  azfunctiononcontainer:
+    image: ${DOCKER_REGISTRY-}azfunctiononcontainer    
+    environment:
+      - AzureWebJobsSecretStorageType=files      
+      - AZURE_FUNCTIONS_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=Development
+      - WEBSITE_HOSTNAME=localhost:7071
+      - ASPNETCORE_URLS=http://+:80            
+      - AzureWebJobsStorage=DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://host.docker.internal:9990/devstoreaccount1;QueueEndpoint=http://host.docker.internal:9991/devstoreaccount1;TableEndpoint=http://host.docker.internal:9992/devstoreaccount1;
+      - myconnectionstring=DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://host.docker.internal:9990/devstoreaccount1;QueueEndpoint=http://host.docker.internal:9991/devstoreaccount1;TableEndpoint=http://host.docker.internal:9992/devstoreaccount1;
+    ports:
+      - "8000:80"
+      - "4000:443"
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
+    depends_on:
+      - azurite
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    command: "azurite --loose --blobHost 0.0.0.0 --blobPort 9990 --queueHost 0.0.0.0 --queuePort 9991  --tableHost 0.0.0.0 --tablePort 9992 --location /workspace --debug /workspace/debug.log"
+    ports:
+      - 9990:9990
+      - 9991:9991
+      - 9992:9992
+    volumes:
+      - ./azurite:/workspace
